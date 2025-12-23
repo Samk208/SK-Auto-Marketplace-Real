@@ -1,0 +1,55 @@
+{
+    "name": "SK AutoSphere",
+    "short_name": "AutoSphere",
+    "description": "Korea's Premier Car Marketplace - Buy & Sell Verified Vehicles",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0F172A",
+    "theme_color": "#0F172A",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/placeholder-logo.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Browse Vehicles",
+            "short_name": "Shop",
+            "description": "Browse all available vehicles",
+            "url": "/shop",
+            "icons": [{ "src": "/icon.svg", "sizes": "96x96" }]
+        },
+        {
+            "name": "My Orders",
+            "short_name": "Orders",
+            "description": "View your orders and tracking",
+            "url": "/orders",
+            "icons": [{ "src": "/icon.svg", "sizes": "96x96" }]
+        },
+        {
+            "name": "Notifications",
+            "short_name": "Alerts",
+            "description": "View your notifications",
+            "url": "/notifications",
+            "icons": [{ "src": "/icon.svg", "sizes": "96x96" }]
+        }
+    ],
+    "categories": [
+        "auto",
+        "shopping",
+        "business"
+    ],
+    "lang": "en",
+    "dir": "ltr",
+    "prefer_related_applications": false,
+    "scope": "/"
+}
