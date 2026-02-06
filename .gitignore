@@ -49,14 +49,16 @@ Thumbs.db
 .DS_Store
 
 # User Exclusions
-/docs/
 /handover-notes/
 /handover/
 /handover_notes/
 /Images/
 /tools/crawl4ai/
+/tools/Office-PowerPoint-MCP-Server/
 
-*.md
+# Large Data & Workflow Docs
+/docs/auto part workflow/
+
 !README.md
 !CONTRIBUTING.md
 !LICENSE.md
@@ -77,3 +79,5 @@ schema_dump*.sql
 # Non-core local utilities/artifacts
 *.py
 *.html
+
+!SK Pitch Deck/SKPitchDeck.jsx
