@@ -29,13 +29,24 @@ jobs:
       - name: 📥 Install Dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: 🏗️ Build Application
+        run: pnpm build
+
+      - name: 🚀 Start Local Server
+        run: |
+          pnpm start &
+          echo "Waiting for server to start..."
+          npx wait-on tcp:3000 --timeout 60000
+
       - name: 🤖 Run Agent Orchestration Test Suite
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }} # e.g. https://your-production-url.com, or localhost if running a service
+          NEXT_PUBLIC_API_URL: http://localhost:3000 # Override to ensure local connection
           # Add OpenAI/Anthropic keys here if the script uses them directly, 
           # otherwise they might be needed by the API if the script calls endpoints.
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} 
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           # We need to run the script using tsx
           npx tsx scripts/test-agent-orchestration.ts
