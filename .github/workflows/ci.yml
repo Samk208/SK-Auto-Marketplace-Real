@@ -45,7 +45,7 @@ jobs:
         run: pnpm build
 
       - name: 🏎️ Lighthouse CI Speed Check
-        uses: treosh/lighthouse-ci-action@v10
+        uses: treosh/lighthouse-ci-action@v12
         with:
           # We use a temporary static build start for simple checks or use an existing URL if deployed
           # For CI, we often build and start locally to test
