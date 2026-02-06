@@ -42,7 +42,7 @@ const updateListingSchema = z.object({
 });
 
 interface RouteParams {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }
 
 /**
@@ -50,7 +50,7 @@ interface RouteParams {
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = await params;
+    const { id } = params;
 
     // 1. Check authentication
     const user = await getCurrentUser();
@@ -97,7 +97,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
  */
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = await params;
+    const { id } = params;
 
     // 1. Check authentication
     const user = await getCurrentUser();
@@ -181,7 +181,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
  */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
-    const { id } = await params;
+    const { id } = params;
 
     // 1. Check authentication
     const user = await getCurrentUser();

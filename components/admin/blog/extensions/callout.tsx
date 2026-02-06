@@ -1,4 +1,9 @@
-import { Node, mergeAttributes } from "@tiptap/core";
+import {
+  Node,
+  mergeAttributes,
+  type Command,
+  type RawCommands,
+} from "@tiptap/core";
 import {
   NodeViewContent,
   NodeViewWrapper,
@@ -11,8 +16,8 @@ export type CalloutType = "info" | "warning" | "success" | "tip";
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     callout: {
-      setCallout: (options?: { type: CalloutType }) => ReturnType;
-      toggleCallout: (options?: { type: CalloutType }) => ReturnType;
+      setCallout: (options?: { type?: CalloutType }) => ReturnType;
+      toggleCallout: (options?: { type?: CalloutType }) => ReturnType;
     };
   }
 }
@@ -77,7 +82,7 @@ export const Callout = Node.create({
     return {
       type: {
         default: "info",
-        renderHTML: (attributes) => {
+        renderHTML: (attributes: Record<string, string>) => {
           return {
             "data-type": attributes.type,
           };
@@ -90,7 +95,7 @@ export const Callout = Node.create({
     return [
       {
         tag: "div[data-type]",
-        getAttrs: (element) => {
+        getAttrs: (element: HTMLElement) => {
           const type = element.getAttribute("data-type");
           if (["info", "warning", "success", "tip"].includes(type as string)) {
             return { type };
@@ -101,7 +106,7 @@ export const Callout = Node.create({
     ];
   },
 
-  renderHTML({ HTMLAttributes }) {
+  renderHTML({ HTMLAttributes }: { HTMLAttributes: Record<string, string> }) {
     const type = (HTMLAttributes["data-type"] as CalloutType) || "info";
     const currentStyle = styles[type] || styles.info;
 
@@ -125,18 +130,16 @@ export const Callout = Node.create({
     return ReactNodeViewRenderer(CalloutComponent);
   },
 
-  addCommands() {
+  addCommands(): Partial<RawCommands> {
     return {
       setCallout:
-        (attributes) =>
-        ({ commands }) => {
-          return commands.setNode(this.name, attributes);
-        },
+        (attributes?: { type?: CalloutType }): Command =>
+        ({ commands }) =>
+          commands.setNode(this.name, attributes),
       toggleCallout:
-        (attributes) =>
-        ({ commands }) => {
-          return commands.toggleNode(this.name, "paragraph", attributes);
-        },
+        (attributes?: { type?: CalloutType }): Command =>
+        ({ commands }) =>
+          commands.toggleNode(this.name, "paragraph", attributes),
     };
   },
 });
