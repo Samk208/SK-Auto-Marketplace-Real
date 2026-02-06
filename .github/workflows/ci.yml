@@ -5,6 +5,7 @@ on:
     branches: [main, develop, "feature/*"]
   pull_request:
     branches: [main, develop]
+  workflow_dispatch:
 
 jobs:
   quality-gate:
@@ -43,20 +44,6 @@ jobs:
         env:
           ANALYZE: true
         run: pnpm build
-
-      - name: 🏎️ Lighthouse CI Speed Check
-        uses: treosh/lighthouse-ci-action@v10
-        with:
-          # We use a temporary static build start for simple checks or use an existing URL if deployed
-          # For CI, we often build and start locally to test
-          cmdArgs: '--preset=perf'
-          # Since we just built it in the previous step, we can try to serve it or rely on a static export if configured.
-          # For Next.js dynamic apps, we often need 'npm run start' running in background.
-          # Here we keep it simple: if you have a purely static output, uploadDir works. 
-          # If dynamic, we need a server. simpler to skip actual LHCI run here without a complex background service setup in GHA
-          # Instead, we will rely on the "Production Build Verification" which implicitly checks for build errors.
-          # Adding a placeholder for where robust E2E/perf tests go.
-        continue-on-error: true 
 
       - name: 🎭 Playwright End-to-End Tests
         run: npx playwright install --with-deps && npx playwright test
