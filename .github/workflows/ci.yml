@@ -1,0 +1,53 @@
+name: Production Quality Checks
+
+on:
+  push:
+    branches: [main, develop, "feature/*"]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  quality-gate:
+    name: 🛡️ Quality Gate
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 🔍 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup PNPM
+        uses: pnpm/action-setup@v3
+        with:
+          version: "latest"
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: 📥 Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🎨 Linting & Code Style
+        run: pnpm lint
+        
+      - name: 📐 TypeScript Validation
+        run: pnpm typecheck
+
+      - name: 🔒 Security Audit
+        # Fails if vulnerabilities are found in dependencies
+        # audit-level: high ensures we catch critical/high issues but don't block on minor ones immediately
+        run: pnpm audit --audit-level=high
+
+      - name: 🏗️ Production Build Verification
+        # Ensures the app actually builds without errors (Next.js build)
+        run: pnpm build
+        env:
+          # Skip large static generation if only checking build validity to save time, 
+          # but for rigorous checks, full build is better. 
+          # We purposefully don't set NEXT_TELEMETRY_DISABLED to follow standard.
+          # We do need dummy env vars only if build requires them.
+          # Next.js 15+ usually handles missing envs gracefully in build unless hard errors.
+          # Setting CI=true for Next.js
+          CI: true
