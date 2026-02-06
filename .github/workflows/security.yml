@@ -1,0 +1,65 @@
+name: Security & Database Integrity
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: '0 0 * * 0' # Weekly run
+
+jobs:
+  security-and-db:
+    name: 🛡️ Security & Database
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+
+    steps:
+      - name: 🔍 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🔐 Secret Scanning (Gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }} # Optional if enterprise
+
+      - name: 🗄️ Supabase Setup
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: 📐 Supabase DB Lint
+        # Checks for best practices, naming conventions, and SQL errors in migrations
+        run: supabase db lint
+        continue-on-error: true # Don't block deploy yet if lint finds warnings, but report them
+
+      - name: 🧪 Supabase DB Tests
+        # Runs pgTAP tests if they exist
+        if: hashFiles('supabase/tests/**') != ''
+        run: supabase test db
+
+      - name: 🔍 CodeQL Init
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+
+      - name: 📦 Install Deps (for CodeQL analysis)
+        run: npm install
+
+      - name: 🕵️ CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+  compliance:
+    name: ⚖️ Compliance Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🔍 Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: 📄 License Check
+        # Ensures all dependencies have compatible licenses (e.g., no AGPL if closed source)
+        run: npx license-checker --summary --failOn "AGPL;GPL;LGPL"  --excludePrivatePackages
+        continue-on-error: true
