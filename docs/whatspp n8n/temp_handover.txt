@@ -1,0 +1,239 @@
+# Handover Note — WhatsApp + n8n (4827) + Supabase + Chatwoot (Pattern 2)
+
+## Purpose
+This note documents the consolidation decision and the concrete changes made to SK AutoSphere messaging so future work (n8n workflow edits, WhatsApp routing, LLM changes) does not create duplicate replies, split memory, or unstable behavior.
+
+This is the **Pattern 2** rollout:
+- **Chatwoot is used only when escalation is needed** (support inbox + assignments + internal notes)
+- **n8n remains the single WhatsApp ingestion endpoint** and the single sender for automated replies
+- **Supabase remains the single source of truth for sessions + message memory**
+
+---
+
+## What changed (high-level)
+
+### Before
+- The codebase had multiple “chat agents” (web copilot, Jinnie, WhatsApp handling) and multiple possible WhatsApp ingestion paths.
+- There is a Next.js WhatsApp webhook route in the repo (`app/api/webhooks/whatsapp/route.ts`) that can ingest and reply.
+
+### Now (consolidation)
+We standardized the customer support channel strategy:
+
+- **Canonical WhatsApp ingestion is n8n-first** (Workflow 4827).
+- **Next.js WhatsApp webhook route remains in repo but must NOT be registered in Meta** for production (to prevent duplicates).
+- Added **Pattern 2 escalation support** so n8n can route “needs human” cases into Chatwoot.
+
+---
+
+## Canonical architecture (single source of truth)
+
+### Inbound
+- **Meta WhatsApp Cloud API → n8n Webhook (4827) → Supabase (sessions/messages) → decision (bot vs human)**
+
+### Outbound
+- **Only n8n sends WhatsApp replies** for automated responses.
+
+### Human escalation (Pattern 2)
+- On escalation:
+  - Flip session into human mode
+  - Create Chatwoot conversation (inbox)
+  - Notify team
+  - Send a short acknowledgement message to the customer
+  - Stop bot replies until the session is returned to bot mode
+
+---
+
+## DB changes applied (Supabase)
+
+### Existing foundation (already present)
+- Tables: `whatsapp_sessions`, `whatsapp_messages`
+- Idempotency: `whatsapp_messages.provider_message_id` with unique index (Meta `wamid...`)
+
+### New fields added (applied to DB)
+Migration file:
+- `supabase/migrations/20251224_026_whatsapp_session_mode_and_chatwoot_fields.sql`
+
+Fields added to `whatsapp_sessions`:
+- `mode` TEXT NOT NULL DEFAULT `bot` (CHECK: `bot|human`)
+- `escalated_at` TIMESTAMPTZ NULL
+- `escalation_reason` TEXT NULL
+- `chatwoot_conversation_id` TEXT NULL
+- `chatwoot_contact_id` TEXT NULL
+
+Purpose:
+- **`mode` is the authoritative routing flag** (prevents AI replies when human takeover is active)
+- escalation fields support tracking + operational workflow
+
+---
+
+## New repo functionality (Next.js)
+
+### 1) Chatwoot helper
+File:
+- `lib/chatwoot.ts`
+
+Purpose:
+- Create a Chatwoot conversation for an escalated WhatsApp customer
+
+### 2) New internal escalation API endpoint
+File:
+- `app/api/support/escalate/route.ts`
+
+Endpoint:
+- `POST /api/support/escalate`
+
+Security:
+- Requires header: `x-internal-token` to match `SUPPORT_INTERNAL_TOKEN` env var.
+
+What it does:
+- Upserts/updates `whatsapp_sessions`:
+  - `mode='human'`
+  - `status='human_escalated'` (kept for compatibility)
+  - sets `escalated_at`, `escalation_reason`
+- Creates a Chatwoot conversation
+- Stores `chatwoot_conversation_id` on the session
+- Returns `{ session_id, chatwoot_conversation_id, chatwoot_url }`
+
+Why this exists:
+- Keeps escalation logic **centralized in code** (less logic duplication inside n8n)
+- Provides a stable contract for n8n to call
+
+---
+
+## Environment variables (required)
+Added to `.env.example`:
+- `SUPPORT_INTERNAL_TOKEN`
+- `CHATWOOT_BASE_URL`
+- `CHATWOOT_ACCOUNT_ID`
+- `CHATWOOT_API_ACCESS_TOKEN`
+- `CHATWOOT_INBOX_ID`
+
+Additionally required (already in project env list):
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY` (required for server-side DB writes)
+
+Important:
+- `SUPPORT_INTERNAL_TOKEN` must be a strong random secret.
+- n8n must send it as `x-internal-token` header.
+
+---
+
+## n8n workflow changes required (TODO)
+
+This repo change assumes the **n8n 4827 workflow** will be updated to Pattern 2.
+
+### Required nodes / logic (order matters)
+1) **Session Upsert (Supabase)**
+   - key: `user_key = wa_id`
+
+2) **Mode Gate (Supabase)**
+   - if `session.mode == 'human'`:
+     - store inbound message (and optionally log to Chatwoot)
+     - STOP (no AI call, no automated reply)
+
+3) **Idempotency Gate**
+   - insert inbound row to `whatsapp_messages` with `provider_message_id=wamid`
+   - if unique constraint conflict: STOP
+
+4) **Escalation Decision**
+   - keyword/rule-based triggers:
+     - explicit “human/agent” request
+     - payment/refund/fraud
+     - complaints/anger
+     - stuck loops
+
+5) **Escalation branch** (if needs human)
+   - call Next.js endpoint:
+     - `POST https://<your-domain>/api/support/escalate`
+     - headers:
+       - `Content-Type: application/json`
+       - `x-internal-token: <SUPPORT_INTERNAL_TOKEN>`
+     - body:
+       - `phone_number`, `customer_name`, `message`, `escalation_reason`, optional `source_id`
+   - send WhatsApp acknowledgement (single short message)
+   - notify internal team (Slack/email) with `chatwoot_url`
+   - STOP
+
+6) **Normal bot branch**
+   - load memory (last 20–30 messages)
+   - call AI endpoint
+   - send WhatsApp reply
+   - persist assistant reply in `whatsapp_messages`
+
+---
+
+## Operational rules (to avoid future errors)
+
+### 1) One Meta webhook target
+- Meta WhatsApp webhook must point to **n8n only**.
+- Do not register Next.js `/api/webhooks/whatsapp` in Meta while using Approach B.
+
+### 2) One automated sender
+- Only n8n sends automated replies.
+- If humans reply using WhatsApp Business App, do not create an automatic Chatwoot→WhatsApp bridge yet.
+
+### 3) Mode flag is mandatory
+- `whatsapp_sessions.mode='human'` must stop automation.
+- Returning to `mode='bot'` should be explicit (manual step for now).
+
+### 4) Keep idempotency
+- Always write inbound message with `provider_message_id` before responding.
+- If insert fails (duplicate), stop.
+
+---
+
+## Testing checklist (must pass before production)
+
+### A) No duplicates
+- Send the same inbound payload twice (simulate Meta retry)
+- Expect: only one response, only one stored inbound record
+
+### B) Escalation
+- Send: “I want a human”
+- Expect:
+  - session `mode` flips to `human`
+  - Chatwoot conversation created
+  - acknowledgement sent
+  - no AI reply after escalation
+
+### C) Human mode gate
+- With session `mode='human'`, send any new message
+- Expect: no AI call, no automated WhatsApp reply
+
+### D) Normal bot reply
+- With session `mode='bot'`, send a simple FAQ message
+- Expect: AI reply + assistant message persisted
+
+---
+
+## Known issues / notes
+
+### Supabase CLI migration mismatch
+- `supabase db push` failed due to mismatch between remote migration history (timestamp-based versions) and local migration filenames.
+- The Pattern 2 DB migration was applied safely via direct Postgres script:
+  - `node supabase/apply-dynamic-migration.js 20251224_026_whatsapp_session_mode_and_chatwoot_fields.sql`
+
+If you later want clean Supabase CLI migrations, you’ll need to reconcile remote migration history with local files.
+
+---
+
+## TODO Summary (what remains to complete setup)
+- Deploy Chatwoot and create an inbox for escalations
+- Set production env vars:
+  - `SUPPORT_INTERNAL_TOKEN`, `CHATWOOT_*`, `SUPABASE_SERVICE_ROLE_KEY`
+- Update n8n workflow 4827 to Pattern 2:
+  - mode gate
+  - escalation rules
+  - call `/api/support/escalate`
+- Ensure Meta webhook points only to n8n
+- Run the testing checklist
+
+---
+
+## Files created/changed in this consolidation
+- `docs/whatspp n8n/WHATSAPP_N8N_CHATWOOT_PATTERN2_WORKFLOW_PLAN.md`
+- `docs/whatspp n8n/WHATSAPP_N8N_CHATWOOT_PATTERN2_HANDOVER.md` (this file)
+- `supabase/migrations/20251224_026_whatsapp_session_mode_and_chatwoot_fields.sql`
+- `lib/chatwoot.ts`
+- `app/api/support/escalate/route.ts`
+- `.env.example` (added Chatwoot + internal token env vars)

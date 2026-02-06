@@ -1,15 +1,25 @@
-import { MarketInsightsDashboard } from "@/components/ai/market-insights-dashboard"
-import { DealerVerificationCard } from "@/components/dealer/verification-card"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { getCurrentDealer, getCurrentUser, isAdmin } from "@/lib/auth/supabase-auth-server"
-import { getDealerStats } from "@/lib/repositories/dealers"
-import { Car, DollarSign, Eye, MessageSquare, Plus } from "lucide-react"
-import Link from "next/link"
+import { MarketInsightsDashboard } from "@/components/ai/market-insights-dashboard";
+import { DealerVerificationCard } from "@/components/dealer/verification-card";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  getCurrentDealer,
+  getCurrentUser,
+  isAdmin,
+} from "@/lib/auth/supabase-auth-server";
+import { getDealerStats } from "@/lib/repositories/dealers";
+import { Car, DollarSign, Eye, MessageSquare, Plus } from "lucide-react";
+import Link from "next/link";
 
 export default async function DealerDashboardPage() {
-  const user = await getCurrentUser()
-  let dealer = await getCurrentDealer()
+  const user = await getCurrentUser();
+  let dealer = await getCurrentDealer();
 
   // Show login prompt if not authenticated
   if (!user) {
@@ -18,7 +28,9 @@ export default async function DealerDashboardPage() {
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Dealer Access Required</CardTitle>
-            <CardDescription>Please log in to access your dealer dashboard</CardDescription>
+            <CardDescription>
+              Please log in to access your dealer dashboard
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Link href="/auth/login?redirect=/dealer/dashboard">
@@ -30,7 +42,7 @@ export default async function DealerDashboardPage() {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   // Check if admin (allow access without dealer profile)
@@ -51,13 +63,13 @@ export default async function DealerDashboardPage() {
       joined_date: new Date().toISOString(),
       active_listings: 0,
       sold_vehicles: 0,
-      verification_status: 'verified',
-      verification_notes: 'Administrator Access Granted',
+      verification_status: "verified",
+      verification_notes: "Administrator Access Granted",
       business_license_url: null,
       logo_url: null,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }
+      updated_at: new Date().toISOString(),
+    };
   }
 
   // Check if dealer profile exists (and not admin)
@@ -67,7 +79,9 @@ export default async function DealerDashboardPage() {
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Dealer Profile Required</CardTitle>
-            <CardDescription>You need a dealer profile to access this dashboard</CardDescription>
+            <CardDescription>
+              You need a dealer profile to access this dashboard
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-slate-600 mb-4">
@@ -79,15 +93,23 @@ export default async function DealerDashboardPage() {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   // Fetch real dealer statistics (or default for admin mock)
-  const stats = dealer.id === "admin-view"
-    ? { activeListings: 0, pendingListings: 0, totalViews: 0, soldVehicles: 0, averagePrice: 0 }
-    : await getDealerStats(dealer.id)
+  const stats =
+    dealer.id === "admin-view"
+      ? {
+          activeListings: 0,
+          pendingListings: 0,
+          totalViews: 0,
+          soldVehicles: 0,
+          averagePrice: 0,
+        }
+      : await getDealerStats(dealer.id);
 
-  const dealerName = dealer.business_name || user.email?.split("@")[0] || "Dealer"
+  const dealerName =
+    dealer.business_name || user.email?.split("@")[0] || "Dealer";
 
   return (
     <div className="space-y-8 p-6">
@@ -100,7 +122,7 @@ export default async function DealerDashboardPage() {
         </div>
         <div className="flex gap-2">
           {/* Show badge if verified */}
-          {dealer.verification_status === 'verified' && (
+          {dealer.verification_status === "verified" && (
             <div className="flex items-center px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium border border-green-200">
               ✅ Verified Dealer
             </div>
@@ -115,7 +137,10 @@ export default async function DealerDashboardPage() {
       </div>
 
       <DealerVerificationCard
-        status={dealer.verification_status || (dealer.verified ? 'verified' : 'unverified')}
+        status={
+          dealer.verification_status ||
+          (dealer.verified ? "verified" : "unverified")
+        }
         notes={dealer.verification_notes}
         licenseUrl={dealer.business_license_url}
       />
@@ -124,7 +149,9 @@ export default async function DealerDashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Active Listings</CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-600">
+              Active Listings
+            </CardTitle>
             <Car className="h-4 w-4 text-slate-600" />
           </CardHeader>
           <CardContent>
@@ -137,20 +164,24 @@ export default async function DealerDashboardPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Total Views</CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-600">
+              Total Views
+            </CardTitle>
             <Eye className="h-4 w-4 text-slate-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalViews.toLocaleString()}</div>
-            <p className="text-xs text-slate-600 mt-1">
-              Across all listings
-            </p>
+            <div className="text-2xl font-bold">
+              {stats.totalViews.toLocaleString()}
+            </div>
+            <p className="text-xs text-slate-600 mt-1">Across all listings</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Sold Vehicles</CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-600">
+              Sold Vehicles
+            </CardTitle>
             <MessageSquare className="h-4 w-4 text-slate-600" />
           </CardHeader>
           <CardContent>
@@ -161,7 +192,9 @@ export default async function DealerDashboardPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Average Price</CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-600">
+              Average Price
+            </CardTitle>
             <DollarSign className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
@@ -216,7 +249,8 @@ export default async function DealerDashboardPage() {
               <p>• New inquiry on "2022 Kia Sportage"</p>
               <p>• Payment received for "2021 Genesis G80"</p>
               <p className="text-xs italic">
-                (This section will show real data once write operations are implemented)
+                (This section will show real data once write operations are
+                implemented)
               </p>
             </div>
           </CardContent>
@@ -226,32 +260,12 @@ export default async function DealerDashboardPage() {
       <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
         <CardContent className="pt-6">
           <p className="text-sm text-blue-900 dark:text-blue-100">
-            <strong>✅ Real Data:</strong> Dashboard statistics are now pulling from your Supabase database.
-            Create listings to see your stats update in real-time!
+            <strong>✅ Real Data:</strong> Dashboard statistics are now pulling
+            from your Supabase database. Create listings to see your stats
+            update in real-time!
           </p>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

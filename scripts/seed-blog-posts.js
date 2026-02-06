@@ -1,36 +1,37 @@
-
-const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config({ path: '.env.local' });
+const { createClient } = require("@supabase/supabase-js");
+require("dotenv").config({ path: ".env.local" });
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseKey = process.env.SUPABASE_SECRET_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
-    console.error("Missing credentials");
-    process.exit(1);
+  console.error("Missing credentials");
+  process.exit(1);
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function seedBlogPosts() {
-    console.log("🌱 Seeding sample blog posts...");
+  console.log("🌱 Seeding sample blog posts...");
 
-    // 1. Get a valid user ID to use as author
-    const { data: users, error: userError } = await supabase.auth.admin.listUsers();
+  // 1. Get a valid user ID to use as author
+  const { data: users, error: userError } =
+    await supabase.auth.admin.listUsers();
 
-    if (userError || !users || users.users.length === 0) {
-        console.error("❌ No users found. Please use the fix script first.");
-        process.exit(1);
-    }
+  if (userError || !users || users.users.length === 0) {
+    console.error("❌ No users found. Please use the fix script first.");
+    process.exit(1);
+  }
 
-    const authorId = users.users[0].id; // Use the first admin user
+  const authorId = users.users[0].id; // Use the first admin user
 
-    const samplePosts = [
-        {
-            title: "Why Korean Cars Are Perfect for African Roads",
-            slug: "why-korean-cars-are-perfect-for-african-roads",
-            summary: "Discover why Kia, Hyundai, and Genesis vehicles are conquering African terrain with their durability, fuel efficiency, and available parts.",
-            content: `<h1>Why Korean Cars Are Perfect for African Roads</h1>
+  const samplePosts = [
+    {
+      title: "Why Korean Cars Are Perfect for African Roads",
+      slug: "why-korean-cars-are-perfect-for-african-roads",
+      summary:
+        "Discover why Kia, Hyundai, and Genesis vehicles are conquering African terrain with their durability, fuel efficiency, and available parts.",
+      content: `<h1>Why Korean Cars Are Perfect for African Roads</h1>
 <p>In recent years, the automotive landscape across Africa has shifted dramatically. While Japanese vehicles traditionally held the top spot, <strong>Korean cars have become the smart choice for African drivers</strong>. Brands like Hyundai, Kia, and Genesis are not just cheaper alternatives anymore; they are engineering powerhouses building vehicles specifically suited for durability, heat resistance, and rough terrain.</p>
 <p>But what exactly makes these vehicles stand out? Beyond the attractive price tags, it comes down to a combination of simplified engineering, readily available parts, and robust suspension systems designed to handle the diverse road conditions found from Lagos to Nairobi.</p>
 
@@ -70,21 +71,25 @@ async function seedBlogPosts() {
 
 <h3>Ghana: The Over-Age Penalty</h3>
 <p>Ghana allows older cars but penalizes them heavily. While you can import a car older than 10 years, you will pay a significant "over-age penalty" duty. It is often more cost-effective to buy a slightly newer vehicle (e.g., 5-7 years old) to avoid these extra taxes and benefit from better reliability.</p>`,
-            cover_image: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1000",
-            status: "published",
-            is_featured: true,
-            published_at: new Date().toISOString(),
-            tags: ["Guides", "Importing"],
-            author_id: authorId,
-            seo_title: "Why Korean Cars Are Perfect for African Roads | SK AutoSphere",
-            seo_description: "Discover why Korean cars like Hyundai and Kia are ideal for African roads. Learn about durability, parts availability, and import tips.",
-            focus_keyword: "Korean cars African roads"
-        },
-        {
-            title: "Top 5 Fuel-Efficient Korean SUVs in 2025",
-            slug: "top-5-fuel-efficient-korean-suvs-2025",
-            summary: "Save money at the pump without sacrificing power. Here are the top 5 Korean SUVs that offer the best fuel economy for African drivers.",
-            content: `<h1>Top 5 Fuel-Efficient Korean SUVs in 2025</h1>
+      cover_image:
+        "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1000",
+      status: "published",
+      is_featured: true,
+      published_at: new Date().toISOString(),
+      tags: ["Guides", "Importing"],
+      author_id: authorId,
+      seo_title:
+        "Why Korean Cars Are Perfect for African Roads | SK AutoSphere",
+      seo_description:
+        "Discover why Korean cars like Hyundai and Kia are ideal for African roads. Learn about durability, parts availability, and import tips.",
+      focus_keyword: "Korean cars African roads",
+    },
+    {
+      title: "Top 5 Fuel-Efficient Korean SUVs in 2025",
+      slug: "top-5-fuel-efficient-korean-suvs-2025",
+      summary:
+        "Save money at the pump without sacrificing power. Here are the top 5 Korean SUVs that offer the best fuel economy for African drivers.",
+      content: `<h1>Top 5 Fuel-Efficient Korean SUVs in 2025</h1>
 <p>With global fuel prices remaining volatile, "miles per gallon" has become just as important as "horsepower." For African drivers, this is doubly true, where long distances between cities and traffic congestion in urban hubs can drain a tank quickly.</p>
 <p>Fortunately, Korean manufacturers have mastered the art of efficient engineering. By utilizing lightweight materials, aerodynamic designs, and advanced hybrid powertrains, they offer SUVs that sip fuel without feeling underpowered. Here is our curated list of the top performers for 2025.</p>
 
@@ -115,47 +120,47 @@ async function seedBlogPosts() {
 
 <h2>Conclusion</h2>
 <p>Choosing any of these vehicles ensures you spend less time at the petrol station and more time on the road. The initial investment in a modern, fuel-efficient Korean SUV pays dividends for years in reduced operating costs. <a href="/shop">Check out our latest listings</a> to find your perfect match today!</p>`,
-            cover_image: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&q=80&w=1000",
-            status: "published",
-            is_featured: false,
-            published_at: new Date(Date.now() - 86400000).toISOString(),
-            tags: ["Reviews", "SUVs"],
-            author_id: authorId,
-            seo_title: "Top 5 Fuel-Efficient Korean SUVs in 2025 | SK AutoSphere",
-            seo_description: "Find the most fuel-efficient Korean SUVs for 2025. Save on fuel with top picks from Kia and Hyundai suitable for African driving.",
-            focus_keyword: "Fuel efficient SUVs"
-        }
-    ];
+      cover_image:
+        "https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&q=80&w=1000",
+      status: "published",
+      is_featured: false,
+      published_at: new Date(Date.now() - 86400000).toISOString(),
+      tags: ["Reviews", "SUVs"],
+      author_id: authorId,
+      seo_title: "Top 5 Fuel-Efficient Korean SUVs in 2025 | SK AutoSphere",
+      seo_description:
+        "Find the most fuel-efficient Korean SUVs for 2025. Save on fuel with top picks from Kia and Hyundai suitable for African driving.",
+      focus_keyword: "Fuel efficient SUVs",
+    },
+  ];
 
-    for (const post of samplePosts) {
-        const { data: existing } = await supabase
-            .from('blog_posts')
-            .select('id')
-            .eq('slug', post.slug)
-            .single();
+  for (const post of samplePosts) {
+    const { data: existing } = await supabase
+      .from("blog_posts")
+      .select("id")
+      .eq("slug", post.slug)
+      .single();
 
-        if (existing) {
-            console.log(`⚠️ Post "${post.title}" already exists. Updating...`);
-            const { error } = await supabase
-                .from('blog_posts')
-                .update(post)
-                .eq('slug', post.slug);
+    if (existing) {
+      console.log(`⚠️ Post "${post.title}" already exists. Updating...`);
+      const { error } = await supabase
+        .from("blog_posts")
+        .update(post)
+        .eq("slug", post.slug);
 
-            if (error) console.error(`Error updating post: ${error.message}`);
-            else console.log(`✅ Updated: ${post.title}`);
-        } else {
-            const { error } = await supabase
-                .from('blog_posts')
-                .insert([post]);
+      if (error) console.error(`Error updating post: ${error.message}`);
+      else console.log(`✅ Updated: ${post.title}`);
+    } else {
+      const { error } = await supabase.from("blog_posts").insert([post]);
 
-            if (error) {
-                console.error(`❌ Error creating post "${post.title}":`, error.message);
-            } else {
-                console.log(`✅ Created: ${post.title}`);
-            }
-        }
+      if (error) {
+        console.error(`❌ Error creating post "${post.title}":`, error.message);
+      } else {
+        console.log(`✅ Created: ${post.title}`);
+      }
     }
-    console.log("✨ Seeding complete!");
+  }
+  console.log("✨ Seeding complete!");
 }
 
 seedBlogPosts();

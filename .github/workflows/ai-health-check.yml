@@ -10,21 +10,29 @@ jobs:
   ai-brain-check:
     name: 🧠 Validating AI Agents & Logic
     runs-on: ubuntu-latest
-    
+
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
     steps:
       - name: 🔍 Checkout Code
         uses: actions/checkout@v4
+
+      - name: 📦 Setup PNPM
+        uses: pnpm/action-setup@v3
+        with:
+          version: "latest"
 
       - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "pnpm"
-
-      - name: 📦 Setup PNPM
-        uses: pnpm/action-setup@v3
-        with:
-          version: "latest"
 
       - name: 📥 Install Dependencies
         run: pnpm install --frozen-lockfile
@@ -40,13 +48,5 @@ jobs:
 
       - name: 🤖 Run Agent Orchestration Test Suite
         env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          NEXT_PUBLIC_API_URL: http://localhost:3000 # Override to ensure local connection
-          # Add OpenAI/Anthropic keys here if the script uses them directly, 
-          # otherwise they might be needed by the API if the script calls endpoints.
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} 
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: |
-          # We need to run the script using tsx
-          npx tsx scripts/test-agent-orchestration.ts
+          NEXT_PUBLIC_API_URL: http://localhost:3000
+        run: npx tsx scripts/test-agent-orchestration.ts

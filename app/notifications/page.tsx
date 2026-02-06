@@ -1,52 +1,54 @@
 /**
  * Notification Center Page
- * 
+ *
  * References:
  * - Novu Notification Center: https://github.com/novuhq/novu
  * - GitHub Notifications: https://github.com/notifications
  */
 
-import { NotificationCenter } from '@/components/notifications/notification-center';
-import { createServerClient } from '@supabase/ssr';
-import type { Metadata } from 'next';
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
+import { NotificationCenter } from "@/components/notifications/notification-center";
+import { createServerClient } from "@supabase/ssr";
+import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
-  title: 'Notifications | SK AutoSphere',
-  description: 'View and manage your notifications',
+  title: "Notifications | SK AutoSphere",
+  description: "View and manage your notifications",
 };
 
 async function getServerSupabase() {
   const cookieStore = await cookies();
-  
+
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
       cookies: {
         getAll() {
           return cookieStore.getAll();
         },
       },
-    }
+    },
   );
 }
 
 export default async function NotificationsPage() {
   const supabase = await getServerSupabase();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/auth/login?redirect=/notifications');
+    redirect("/auth/login?redirect=/notifications");
   }
 
   // Fetch initial notifications server-side
   const { data: notifications } = await supabase
-    .from('notifications')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
+    .from("notifications")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
     .limit(50);
 
   return (

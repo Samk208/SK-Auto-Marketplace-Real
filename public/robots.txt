@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /checkout/
+Disallow: /buyer/dashboard/
+
+Sitemap: https://sk-autosphere.com/sitemap.xml

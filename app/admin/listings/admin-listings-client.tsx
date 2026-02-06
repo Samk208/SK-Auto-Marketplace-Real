@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
 /**
  * Admin Listings Client Component
  * Handles approve/reject actions with loading states and error handling
  */
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -14,9 +14,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -24,37 +24,43 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Textarea } from '@/components/ui/textarea';
-import type { Database } from '@/types/database';
-import { CheckCircle, Eye, Loader2, XCircle } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+} from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
+import type { Database } from "@/types/database";
+import { CheckCircle, Eye, Loader2, XCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
-type CarListing = Database['public']['Tables']['car_listings']['Row'] & {
+type CarListing = Database["public"]["Tables"]["car_listings"]["Row"] & {
   dealers: {
     id: string;
     business_name: string;
     verified: boolean;
-  }[] | null;
+  } | null;
 };
 
 interface AdminListingsClientProps {
   initialListings: CarListing[];
 }
 
-export function AdminListingsClient({ initialListings }: AdminListingsClientProps) {
+export function AdminListingsClient({
+  initialListings,
+}: AdminListingsClientProps) {
   const router = useRouter();
   const [listings, setListings] = useState<CarListing[]>(initialListings);
-  const [filter, setFilter] = useState<'all' | 'pending' | 'active' | 'rejected'>('all');
+  const [filter, setFilter] = useState<
+    "all" | "pending" | "active" | "rejected"
+  >("all");
   const [isApproving, setIsApproving] = useState<string | null>(null);
   const [isRejecting, setIsRejecting] = useState<string | null>(null);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
-  const [rejectReason, setRejectReason] = useState('');
-  const [selectedListing, setSelectedListing] = useState<CarListing | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+  const [selectedListing, setSelectedListing] = useState<CarListing | null>(
+    null,
+  );
 
-  const filteredListings = listings.filter(listing => {
-    if (filter === 'all') return true;
+  const filteredListings = listings.filter((listing) => {
+    if (filter === "all") return true;
     return listing.status === filter;
   });
 
@@ -63,31 +69,33 @@ export function AdminListingsClient({ initialListings }: AdminListingsClientProp
 
     try {
       const response = await fetch(`/api/admin/listings/${listingId}/approve`, {
-        method: 'PATCH',
-        credentials: 'include',
+        method: "PATCH",
+        credentials: "include",
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to approve listing');
+        throw new Error(data.error || "Failed to approve listing");
       }
 
       // Update local state
-      setListings(prev =>
-        prev.map(listing =>
+      setListings((prev) =>
+        prev.map((listing) =>
           listing.id === listingId
-            ? { ...listing, status: 'active' as const }
-            : listing
-        )
+            ? { ...listing, status: "active" as const }
+            : listing,
+        ),
       );
 
       // Show success message
-      alert('Listing approved successfully! Email sent to dealer.');
+      alert("Listing approved successfully! Email sent to dealer.");
       router.refresh();
     } catch (error) {
-      console.error('Approve error:', error);
-      alert(error instanceof Error ? error.message : 'Failed to approve listing');
+      console.error("Approve error:", error);
+      alert(
+        error instanceof Error ? error.message : "Failed to approve listing",
+      );
     } finally {
       setIsApproving(null);
     }
@@ -95,7 +103,7 @@ export function AdminListingsClient({ initialListings }: AdminListingsClientProp
 
   const handleRejectClick = (listing: CarListing) => {
     setSelectedListing(listing);
-    setRejectReason('');
+    setRejectReason("");
     setRejectDialogOpen(true);
   };
 
@@ -103,75 +111,79 @@ export function AdminListingsClient({ initialListings }: AdminListingsClientProp
     if (!selectedListing) return;
 
     if (rejectReason.length < 10) {
-      alert('Rejection reason must be at least 10 characters');
+      alert("Rejection reason must be at least 10 characters");
       return;
     }
 
     setIsRejecting(selectedListing.id);
 
     try {
-      const response = await fetch(`/api/admin/listings/${selectedListing.id}/reject`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `/api/admin/listings/${selectedListing.id}/reject`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            rejection_reason: rejectReason,
+          }),
         },
-        credentials: 'include',
-        body: JSON.stringify({
-          rejection_reason: rejectReason,
-        }),
-      });
+      );
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to reject listing');
+        throw new Error(data.error || "Failed to reject listing");
       }
 
       // Update local state
-      setListings(prev =>
-        prev.map(listing =>
+      setListings((prev) =>
+        prev.map((listing) =>
           listing.id === selectedListing.id
-            ? { ...listing, status: 'rejected' as const }
-            : listing
-        )
+            ? { ...listing, status: "rejected" as const }
+            : listing,
+        ),
       );
 
       // Close dialog and reset
       setRejectDialogOpen(false);
-      setRejectReason('');
+      setRejectReason("");
       setSelectedListing(null);
 
       // Show success message
-      alert('Listing rejected successfully! Email sent to dealer with reason.');
+      alert("Listing rejected successfully! Email sent to dealer with reason.");
       router.refresh();
     } catch (error) {
-      console.error('Reject error:', error);
-      alert(error instanceof Error ? error.message : 'Failed to reject listing');
+      console.error("Reject error:", error);
+      alert(
+        error instanceof Error ? error.message : "Failed to reject listing",
+      );
     } finally {
       setIsRejecting(null);
     }
   };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-      pending: 'secondary',
-      active: 'default',
-      sold: 'outline',
-      rejected: 'destructive',
+    const variants: Record<
+      string,
+      "default" | "secondary" | "destructive" | "outline"
+    > = {
+      pending: "secondary",
+      active: "default",
+      sold: "outline",
+      rejected: "destructive",
     };
 
-    return (
-      <Badge variant={variants[status] || 'default'}>
-        {status}
-      </Badge>
-    );
+    return <Badge variant={variants[status] || "default"}>{status}</Badge>;
   };
 
   const stats = {
     total: listings.length,
-    pending: listings.filter(l => l.status === 'pending').length,
-    active: listings.filter(l => l.status === 'active').length,
-    rejected: listings.filter(l => l.status === 'rejected').length,
+    pending: listings.filter((l) => l.status === "pending").length,
+    active: listings.filter((l) => l.status === "active").length,
+    rejected: listings.filter((l) => l.status === "rejected").length,
   };
 
   return (
@@ -184,24 +196,30 @@ export function AdminListingsClient({ initialListings }: AdminListingsClientProp
         </div>
         <div className="bg-card p-4 rounded-lg border">
           <div className="text-sm text-muted-foreground">Pending Review</div>
-          <div className="text-2xl font-bold text-orange-500">{stats.pending}</div>
+          <div className="text-2xl font-bold text-orange-500">
+            {stats.pending}
+          </div>
         </div>
         <div className="bg-card p-4 rounded-lg border">
           <div className="text-sm text-muted-foreground">Active</div>
-          <div className="text-2xl font-bold text-green-500">{stats.active}</div>
+          <div className="text-2xl font-bold text-green-500">
+            {stats.active}
+          </div>
         </div>
         <div className="bg-card p-4 rounded-lg border">
           <div className="text-sm text-muted-foreground">Rejected</div>
-          <div className="text-2xl font-bold text-red-500">{stats.rejected}</div>
+          <div className="text-2xl font-bold text-red-500">
+            {stats.rejected}
+          </div>
         </div>
       </div>
 
       {/* Filter Tabs */}
       <div className="flex gap-2">
-        {(['all', 'pending', 'active', 'rejected'] as const).map((status) => (
+        {(["all", "pending", "active", "rejected"] as const).map((status) => (
           <Button
             key={status}
-            variant={filter === status ? 'default' : 'outline'}
+            variant={filter === status ? "default" : "outline"}
             onClick={() => setFilter(status)}
             className="capitalize"
           >
@@ -226,8 +244,11 @@ export function AdminListingsClient({ initialListings }: AdminListingsClientProp
           <TableBody>
             {filteredListings.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                  No {filter !== 'all' ? filter : ''} listings found
+                <TableCell
+                  colSpan={6}
+                  className="text-center py-8 text-muted-foreground"
+                >
+                  No {filter !== "all" ? filter : ""} listings found
                 </TableCell>
               </TableRow>
             ) : (
@@ -240,19 +261,15 @@ export function AdminListingsClient({ initialListings }: AdminListingsClientProp
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div>{listing.dealers?.[0]?.business_name || 'N/A'}</div>
-                    {listing.dealers?.[0]?.verified && (
+                    <div>{listing.dealers?.business_name || "N/A"}</div>
+                    {listing.dealers?.verified && (
                       <Badge variant="outline" className="text-xs">
                         Verified
                       </Badge>
                     )}
                   </TableCell>
-                  <TableCell>
-                    ${listing.price.toLocaleString()}
-                  </TableCell>
-                  <TableCell>
-                    {getStatusBadge(listing.status)}
-                  </TableCell>
+                  <TableCell>${listing.price.toLocaleString()}</TableCell>
+                  <TableCell>{getStatusBadge(listing.status)}</TableCell>
                   <TableCell>
                     {new Date(listing.created_at).toLocaleDateString()}
                   </TableCell>
@@ -261,12 +278,14 @@ export function AdminListingsClient({ initialListings }: AdminListingsClientProp
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => window.open(`/shop/${listing.id}`, '_blank')}
+                        onClick={() =>
+                          window.open(`/shop/${listing.id}`, "_blank")
+                        }
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
 
-                      {listing.status === 'pending' && (
+                      {listing.status === "pending" && (
                         <>
                           <Button
                             variant="default"
@@ -312,7 +331,8 @@ export function AdminListingsClient({ initialListings }: AdminListingsClientProp
           <DialogHeader>
             <DialogTitle>Reject Listing</DialogTitle>
             <DialogDescription>
-              Provide a reason for rejecting this listing. The dealer will receive this feedback via email.
+              Provide a reason for rejecting this listing. The dealer will
+              receive this feedback via email.
             </DialogDescription>
           </DialogHeader>
 
@@ -321,7 +341,7 @@ export function AdminListingsClient({ initialListings }: AdminListingsClientProp
               <Label htmlFor="listing-title">Listing</Label>
               <Input
                 id="listing-title"
-                value={selectedListing?.title || ''}
+                value={selectedListing?.title || ""}
                 disabled
                 className="mt-1"
               />
@@ -350,7 +370,7 @@ export function AdminListingsClient({ initialListings }: AdminListingsClientProp
               variant="outline"
               onClick={() => {
                 setRejectDialogOpen(false);
-                setRejectReason('');
+                setRejectReason("");
                 setSelectedListing(null);
               }}
             >
@@ -367,7 +387,7 @@ export function AdminListingsClient({ initialListings }: AdminListingsClientProp
                   Rejecting...
                 </>
               ) : (
-                'Reject Listing'
+                "Reject Listing"
               )}
             </Button>
           </DialogFooter>

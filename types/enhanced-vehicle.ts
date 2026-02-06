@@ -8,12 +8,33 @@
 // ENUMS & LITERAL TYPES
 // ===========================================
 
-export type VehicleCondition = 'excellent' | 'good' | 'fair' | 'poor';
-export type TransmissionType = 'automatic' | 'manual' | 'cvt' | 'dual-clutch' | 'Automatic' | 'Manual';
-export type FuelType = 'petrol' | 'diesel' | 'electric' | 'hybrid' | 'lpg' | 'Petrol' | 'Diesel' | 'Electric' | 'Hybrid';
-export type VehicleStatus = 'active' | 'pending' | 'sold' | 'rejected';
-export type InquiryType = 'general' | 'price_negotiation' | 'inspection' | 'shipping' | 'financing' | 'test_drive';
-export type InquiryStatus = 'new' | 'read' | 'responded' | 'closed';
+export type VehicleCondition = "excellent" | "good" | "fair" | "poor";
+export type TransmissionType =
+  | "automatic"
+  | "manual"
+  | "cvt"
+  | "dual-clutch"
+  | "Automatic"
+  | "Manual";
+export type FuelType =
+  | "petrol"
+  | "diesel"
+  | "electric"
+  | "hybrid"
+  | "lpg"
+  | "Petrol"
+  | "Diesel"
+  | "Electric"
+  | "Hybrid";
+export type VehicleStatus = "active" | "pending" | "sold" | "rejected";
+export type InquiryType =
+  | "general"
+  | "price_negotiation"
+  | "inspection"
+  | "shipping"
+  | "financing"
+  | "test_drive";
+export type InquiryStatus = "new" | "read" | "responded" | "closed";
 
 // ===========================================
 // VEHICLE TYPES
@@ -27,7 +48,7 @@ export interface EnhancedVehicleListing {
   // Core Identifiers
   id: string;
   dealer_id: string;
-  
+
   // Basic Vehicle Info
   title: string;
   brand: string; // 'make' in DMS terminology
@@ -36,55 +57,55 @@ export interface EnhancedVehicleListing {
   price: number;
   currency: string;
   mileage: number | null;
-  
+
   // Body & Type
   body_type: string | null;
   transmission: TransmissionType | null;
   fuel_type: FuelType | null;
-  
+
   // Condition & History (DMS-inspired)
   vin?: string | null;
   vehicle_condition?: VehicleCondition | null;
   previous_owners?: number;
-  
+
   // Colors
   exterior_color?: string | null;
   interior_color?: string | null;
-  
+
   // Performance
   engine_size?: number | null; // in liters (e.g., 2.0, 3.5)
   horsepower?: number | null;
   seating_capacity?: number;
-  
+
   // Features & Service
   features?: string[]; // ['Leather seats', 'Sunroof', 'Navigation']
   service_history?: ServiceRecord[];
   inspection_report_url?: string | null;
   available_for_viewing?: boolean;
-  
+
   // Location
   location: string | null;
   location_city?: string | null;
   location_country?: string; // ISO 2-letter code, default 'KR'
   destination_port: string | null;
-  
+
   // Images
   images: string[] | object | null;
   primary_image_url?: string | null;
   image_urls?: string[];
-  
+
   // Specifications (JSONB in DB)
   specifications: Record<string, unknown> | null;
-  
+
   // Listing Status
   status: VehicleStatus;
   featured: boolean;
   views: number;
-  
+
   // Timestamps
   created_at: string;
   updated_at: string;
-  
+
   // Joined Data (optional)
   dealer?: DealerInfo;
   specs?: VehicleSpecifications;
@@ -96,7 +117,7 @@ export interface EnhancedVehicleListing {
  */
 export interface ServiceRecord {
   date: string; // ISO date
-  type: 'maintenance' | 'repair' | 'inspection' | 'accident';
+  type: "maintenance" | "repair" | "inspection" | "accident";
   description: string;
   cost?: number;
   mileage: number;
@@ -110,27 +131,27 @@ export interface ServiceRecord {
 export interface VehicleSpecifications {
   id: string;
   listing_id: string;
-  
+
   // Dimensions (millimeters)
   length_mm?: number | null;
   width_mm?: number | null;
   height_mm?: number | null;
   wheelbase_mm?: number | null;
   weight_kg?: number | null;
-  
+
   // Capacity
   fuel_tank_capacity?: number | null; // liters
   trunk_capacity_liters?: number | null;
-  
+
   // Performance
   acceleration_0_100?: number | null; // seconds
   top_speed_kmh?: number | null;
-  
+
   // Fuel Efficiency
   fuel_efficiency_city?: number | null; // km/L
   fuel_efficiency_highway?: number | null; // km/L
   co2_emissions?: number | null; // g/km
-  
+
   created_at: string;
   updated_at: string;
 }
@@ -156,24 +177,24 @@ export interface VehicleInquiry {
   id: string;
   listing_id: string;
   dealer_id: string;
-  
+
   // Buyer Information
   buyer_email: string;
   buyer_name: string;
   buyer_phone?: string | null;
   buyer_country?: string | null;
-  
+
   // Inquiry Details
   message: string;
   inquiry_type: InquiryType;
   status: InquiryStatus;
-  
+
   // Dealer Response
   dealer_response?: string | null;
   responded_at?: string | null;
-  
+
   created_at: string;
-  
+
   // Joined Data (optional)
   listing?: EnhancedVehicleListing;
   dealer?: DealerInfo;
@@ -212,7 +233,7 @@ export interface DealerInfo {
   joined_date: string;
   active_listings: number;
   sold_vehicles: number;
-  
+
   // Stats (from get_dealer_stats_enhanced function)
   stats?: DealerStats;
 }
@@ -250,32 +271,32 @@ export interface VehicleSearchFilters {
   max_year?: number;
   min_price?: number;
   max_price?: number;
-  
+
   // Vehicle details
   condition?: VehicleCondition;
   fuel_type?: FuelType | string;
   transmission?: TransmissionType | string;
   body_type?: string;
-  
+
   // Location
   location_country?: string;
   destination_port?: string;
-  
+
   // Dealer
   dealer_id?: string;
-  
+
   // Search text
   search?: string;
-  
+
   // Pagination
   limit?: number;
   offset?: number;
   page?: number;
   pageSize?: number;
-  
+
   // Sorting
-  sortBy?: 'price' | 'year' | 'created_at' | 'mileage' | 'views';
-  sortOrder?: 'asc' | 'desc';
+  sortBy?: "price" | "year" | "created_at" | "mileage" | "views";
+  sortOrder?: "asc" | "desc";
 }
 
 /**
@@ -399,23 +420,20 @@ export interface CreateSpecificationsInput {
 // ===========================================
 
 export function isVehicleCondition(value: string): value is VehicleCondition {
-  return ['excellent', 'good', 'fair', 'poor'].includes(value);
+  return ["excellent", "good", "fair", "poor"].includes(value);
 }
 
 export function isInquiryType(value: string): value is InquiryType {
-  return ['general', 'price_negotiation', 'inspection', 'shipping', 'financing', 'test_drive'].includes(value);
+  return [
+    "general",
+    "price_negotiation",
+    "inspection",
+    "shipping",
+    "financing",
+    "test_drive",
+  ].includes(value);
 }
 
 export function isVehicleStatus(value: string): value is VehicleStatus {
-  return ['active', 'pending', 'sold', 'rejected'].includes(value);
+  return ["active", "pending", "sold", "rejected"].includes(value);
 }
-
-
-
-
-
-
-
-
-
-

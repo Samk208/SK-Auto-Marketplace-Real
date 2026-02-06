@@ -1,22 +1,28 @@
-import { redirect } from "next/navigation"
-import Link from "next/link"
-import { getCurrentUser } from "@/lib/auth/supabase-auth-server"
-import { getDealerByUserId } from "@/lib/repositories/dealers"
-import { ListingForm } from "@/components/dealer/listing-form"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft } from "lucide-react"
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { getCurrentUser } from "@/lib/auth/supabase-auth-server";
+import { getDealerByUserId } from "@/lib/repositories/dealers";
+import { ListingForm } from "@/components/dealer/listing-form";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 export default async function NewListingPage() {
-  const user = await getCurrentUser()
+  const user = await getCurrentUser();
 
   // Check if user is logged in
   if (!user) {
-    redirect("/auth/login?redirect=/dealer/listings/new")
+    redirect("/auth/login?redirect=/dealer/listings/new");
   }
 
   // Check if user is a dealer
-  const dealer = await getDealerByUserId(user.id)
+  const dealer = await getDealerByUserId(user.id);
   if (!dealer) {
     return (
       <div className="container max-w-2xl mx-auto py-8 px-4">
@@ -37,13 +43,16 @@ export default async function NewListingPage() {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
     <div className="container max-w-4xl mx-auto py-8 px-4">
       <div className="mb-6">
-        <Link href="/dealer/listings" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4">
+        <Link
+          href="/dealer/listings"
+          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
+        >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Listings
         </Link>
@@ -55,25 +64,5 @@ export default async function NewListingPage() {
 
       <ListingForm mode="create" />
     </div>
-  )
+  );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

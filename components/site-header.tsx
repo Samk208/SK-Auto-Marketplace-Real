@@ -1,10 +1,10 @@
-import { UserMenu } from "@/components/auth/user-menu"
-import { DealerAreaButton } from "@/components/dealer-area-button"
-import { LanguageSwitcher } from "@/components/language-switcher"
-import { NotificationBell } from "@/components/notifications/notification-bell"
-import { SiteNav } from "@/components/site-nav"
-import { Car } from "lucide-react"
-import Link from "next/link"
+import { UserMenu } from "@/components/auth/user-menu";
+import { DealerAreaButton } from "@/components/dealer-area-button";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { NotificationBell } from "@/components/notifications/notification-bell";
+import { SiteNav } from "@/components/site-nav";
+import { Car } from "lucide-react";
+import Link from "next/link";
 
 export function SiteHeader() {
   return (
@@ -25,8 +25,5 @@ export function SiteHeader() {
         </div>
       </div>
     </header>
-  )
+  );
 }
-
-
-

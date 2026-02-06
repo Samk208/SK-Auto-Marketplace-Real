@@ -15,7 +15,10 @@ function loadEnv() {
     envFile.split("\n").forEach((line) => {
       const [key, ...values] = line.split("=");
       if (key && values.length > 0) {
-        const value = values.join("=").trim().replace(/^["']|["']$/g, "");
+        const value = values
+          .join("=")
+          .trim()
+          .replace(/^["']|["']$/g, "");
         process.env[key.trim()] = value;
       }
     });
@@ -27,11 +30,11 @@ function loadEnv() {
 loadEnv();
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseServiceRoleKey = process.env.SUPABASE_SECRET_KEY;
 
 if (!supabaseUrl || !supabaseServiceRoleKey) {
   console.error("❌ Missing environment variables!");
-  console.error("Required: NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY");
+  console.error("Required: NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SECRET_KEY");
   process.exit(1);
 }
 
@@ -49,7 +52,8 @@ async function setAdminRole(email?: string) {
     // If no email provided, get the first user
     if (!targetEmail) {
       console.log("📋 Fetching users...");
-      const { data: users, error: listError } = await supabase.auth.admin.listUsers();
+      const { data: users, error: listError } =
+        await supabase.auth.admin.listUsers();
 
       if (listError) {
         console.error("❌ Error fetching users:", listError);
@@ -67,8 +71,9 @@ async function setAdminRole(email?: string) {
     }
 
     // Find user by email
-    const { data: users, error: searchError } = await supabase.auth.admin.listUsers();
-    
+    const { data: users, error: searchError } =
+      await supabase.auth.admin.listUsers();
+
     if (searchError) {
       console.error("❌ Error searching for user:", searchError);
       process.exit(1);
@@ -108,4 +113,3 @@ async function setAdminRole(email?: string) {
 // Get email from command line argument or use first user
 const email = process.argv[2];
 setAdminRole(email);
-

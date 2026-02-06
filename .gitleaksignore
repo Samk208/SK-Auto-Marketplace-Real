@@ -1,0 +1,8 @@
+# Gitleaks Allowlist
+# These findings have been reviewed and the secrets have been rotated.
+#
+# 1. Supabase service role JWT in verify-transactions-migration.js (Initial commit)
+#    - The hardcoded JWT was removed and replaced with process.env.SUPABASE_SECRET_KEY
+#    - The old JWT-format key has been rotated to a new sb_secret_* format key
+#    - Commit: c0e0dc80a9eb37bf5ae8d0f246c4cfcf4fb156c7
+c0e0dc80a9eb37bf5ae8d0f246c4cfcf4fb156c7:scripts/verify-transactions-migration.js:jwt

@@ -1,87 +1,100 @@
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { createSupabaseServerActionClient, getCurrentUser } from "@/lib/auth/supabase-auth-server"
-import { createClient } from "@supabase/supabase-js"
-import { AlertCircle, CheckCircle2 } from "lucide-react"
-import Link from "next/link"
-import { redirect } from "next/navigation"
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  createSupabaseServerActionClient,
+  getCurrentUser,
+} from "@/lib/auth/supabase-auth-server";
+import { createClient } from "@supabase/supabase-js";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
+import Link from "next/link";
+import { redirect } from "next/navigation";
 
 export default async function RegisterPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; success?: string }>
+  searchParams: Promise<{ error?: string; success?: string }>;
 }) {
-  const { error: errorParam, success: successParam } = await searchParams
-  const user = await getCurrentUser()
+  const { error: errorParam, success: successParam } = await searchParams;
+  const user = await getCurrentUser();
 
   // If already logged in, redirect to dashboard
   if (user) {
-    redirect("/dealer/dashboard")
+    redirect("/dealer/dashboard");
   }
 
   async function register(formData: FormData) {
-    "use server"
+    "use server";
 
-    const email = formData.get("email") as string
-    const password = formData.get("password") as string
-    const confirmPassword = formData.get("confirmPassword") as string
-    const fullName = formData.get("fullName") as string
-    const businessName = formData.get("businessName") as string
-    const role = (formData.get("role") as string) || "dealer"
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const confirmPassword = formData.get("confirmPassword") as string;
+    const fullName = formData.get("fullName") as string;
+    const businessName = formData.get("businessName") as string;
+    const role = (formData.get("role") as string) || "dealer";
 
     // Validation
     if (!email || !password || !fullName) {
-      redirect("/auth/register?error=missing_fields")
+      redirect("/auth/register?error=missing_fields");
     }
 
     if (password !== confirmPassword) {
-      redirect("/auth/register?error=password_mismatch")
+      redirect("/auth/register?error=password_mismatch");
     }
 
     if (password.length < 8) {
-      redirect("/auth/register?error=password_too_short")
+      redirect("/auth/register?error=password_too_short");
     }
 
     try {
-      const supabase = await createSupabaseServerActionClient()
+      const supabase = await createSupabaseServerActionClient();
 
       // 1. Sign up the user
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-            role: role,
+      const { data: authData, error: signUpError } = await supabase.auth.signUp(
+        {
+          email,
+          password,
+          options: {
+            data: {
+              full_name: fullName,
+              role: role,
+            },
+            emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/auth/callback`,
           },
-          emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
         },
-      })
+      );
 
       if (signUpError) {
-        console.error('Signup error:', signUpError)
-        redirect(`/auth/register?error=${encodeURIComponent(signUpError.message)}`)
+        console.error("Signup error:", signUpError);
+        redirect(
+          `/auth/register?error=${encodeURIComponent(signUpError.message)}`,
+        );
       }
 
       if (!authData.user) {
-        redirect("/auth/register?error=signup_failed")
+        redirect("/auth/register?error=signup_failed");
       }
 
       // 2. If role is dealer, create dealer profile using Admin Client (bypassing RLS)
       if (role === "dealer" && businessName) {
         const supabaseAdmin = createClient(
           process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.SUPABASE_SERVICE_ROLE_KEY!,
+          process.env.SUPABASE_SECRET_KEY!,
           {
             auth: {
               autoRefreshToken: false,
-              persistSession: false
-            }
-          }
-        )
+              persistSession: false,
+            },
+          },
+        );
 
         const { error: dealerError } = await supabaseAdmin
           .from("dealers")
@@ -93,19 +106,19 @@ export default async function RegisterPage({
             review_count: 0,
             active_listings: 0,
             sold_vehicles: 0,
-          } as any)
+          } as any);
 
         if (dealerError) {
-          console.error("Error creating dealer profile:", dealerError)
+          console.error("Error creating dealer profile:", dealerError);
           // Don't fail registration if dealer profile creation fails, but log it
         }
       }
 
       // 3. Redirect to success page
-      redirect("/auth/register?success=true")
+      redirect("/auth/register?success=true");
     } catch (error) {
-      console.error("Registration error:", error)
-      redirect("/auth/register?error=unexpected_error")
+      console.error("Registration error:", error);
+      redirect("/auth/register?error=unexpected_error");
     }
   }
 
@@ -113,8 +126,12 @@ export default async function RegisterPage({
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 px-4 py-8">
       <Card className="w-full max-w-lg">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
-          <CardDescription>Join SK AutoSphere as a dealer or buyer</CardDescription>
+          <CardTitle className="text-2xl font-bold">
+            Create an account
+          </CardTitle>
+          <CardDescription>
+            Join SK AutoSphere as a dealer or buyer
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {successParam === "true" ? (
@@ -136,13 +153,23 @@ export default async function RegisterPage({
                 <Alert variant="destructive" className="mb-4">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    {errorParam === "missing_fields" && "Please fill in all required fields"}
-                    {errorParam === "password_mismatch" && "Passwords do not match"}
-                    {errorParam === "password_too_short" && "Password must be at least 8 characters"}
-                    {errorParam === "signup_failed" && "Failed to create account. Please try again."}
-                    {errorParam === "unexpected_error" && "An unexpected error occurred. Please try again."}
-                    {!["missing_fields", "password_mismatch", "password_too_short", "signup_failed", "unexpected_error"].includes(errorParam) &&
-                      decodeURIComponent(errorParam)}
+                    {errorParam === "missing_fields" &&
+                      "Please fill in all required fields"}
+                    {errorParam === "password_mismatch" &&
+                      "Passwords do not match"}
+                    {errorParam === "password_too_short" &&
+                      "Password must be at least 8 characters"}
+                    {errorParam === "signup_failed" &&
+                      "Failed to create account. Please try again."}
+                    {errorParam === "unexpected_error" &&
+                      "An unexpected error occurred. Please try again."}
+                    {![
+                      "missing_fields",
+                      "password_mismatch",
+                      "password_too_short",
+                      "signup_failed",
+                      "unexpected_error",
+                    ].includes(errorParam) && decodeURIComponent(errorParam)}
                   </AlertDescription>
                 </Alert>
               )}
@@ -177,7 +204,9 @@ export default async function RegisterPage({
 
                 {/* Business Name (for dealers) */}
                 <div className="space-y-2">
-                  <Label htmlFor="businessName">Business Name (Optional for dealers)</Label>
+                  <Label htmlFor="businessName">
+                    Business Name (Optional for dealers)
+                  </Label>
                   <Input
                     id="businessName"
                     name="businessName"
@@ -185,7 +214,9 @@ export default async function RegisterPage({
                     placeholder="Your Auto Export Co."
                     autoComplete="organization"
                   />
-                  <p className="text-xs text-slate-500">You can update this later in your profile</p>
+                  <p className="text-xs text-slate-500">
+                    You can update this later in your profile
+                  </p>
                 </div>
 
                 {/* Email */}
@@ -213,7 +244,9 @@ export default async function RegisterPage({
                     autoComplete="new-password"
                     minLength={8}
                   />
-                  <p className="text-xs text-slate-500">Must be at least 8 characters</p>
+                  <p className="text-xs text-slate-500">
+                    Must be at least 8 characters
+                  </p>
                 </div>
 
                 {/* Confirm Password */}
@@ -237,7 +270,10 @@ export default async function RegisterPage({
 
               <div className="mt-4 text-center text-sm text-slate-600 dark:text-slate-400">
                 Already have an account?{" "}
-                <Link href="/auth/login" className="text-blue-600 hover:underline">
+                <Link
+                  href="/auth/login"
+                  className="text-blue-600 hover:underline"
+                >
                   Sign in
                 </Link>
               </div>
@@ -246,5 +282,5 @@ export default async function RegisterPage({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

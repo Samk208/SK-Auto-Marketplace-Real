@@ -9,25 +9,28 @@
  * DO NOT import this in client components!
  */
 
-import type { Database } from '@/types/database'
-import { createClient } from '@supabase/supabase-js'
+import type { Database } from "@/types/database";
+import { createClient } from "@supabase/supabase-js";
 
 // Validate environment variables
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceRoleKey = process.env.SUPABASE_SECRET_KEY;
 
 if (!supabaseUrl) {
-  console.error('Missing env.NEXT_PUBLIC_SUPABASE_URL')
-  throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_URL')
+  console.error("Missing env.NEXT_PUBLIC_SUPABASE_URL");
+  throw new Error("Missing env.NEXT_PUBLIC_SUPABASE_URL");
 } else {
-  console.log('Supabase URL loaded:', supabaseUrl.substring(0, 10) + '...')
+  console.log("Supabase URL loaded:", supabaseUrl.substring(0, 10) + "...");
 }
 
 if (!supabaseServiceRoleKey) {
-  console.error('Missing env.SUPABASE_SERVICE_ROLE_KEY')
-  throw new Error('Missing env.SUPABASE_SERVICE_ROLE_KEY')
+  console.error("Missing env.SUPABASE_SECRET_KEY");
+  throw new Error("Missing env.SUPABASE_SECRET_KEY");
 } else {
-  console.log('Supabase Service Role Key loaded:', supabaseServiceRoleKey.substring(0, 10) + '...')
+  console.log(
+    "Supabase Secret Key loaded:",
+    supabaseServiceRoleKey.substring(0, 10) + "...",
+  );
 }
 
 /**
@@ -40,7 +43,7 @@ export function getSupabaseServerClient() {
       autoRefreshToken: false,
       persistSession: false,
     },
-  })
+  });
 }
 
 /**
@@ -55,5 +58,5 @@ export const supabaseServer = createClient<Database>(
       autoRefreshToken: false,
       persistSession: false,
     },
-  }
-)
+  },
+);

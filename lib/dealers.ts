@@ -1,4 +1,4 @@
-import type { Dealer } from "@/types"
+import type { Dealer } from "@/types";
 
 /**
  * Korean auto dealers who export to Africa
@@ -13,7 +13,8 @@ export const MOCK_DEALERS: Dealer[] = [
     totalReviews: 203,
     location: "Seoul, South Korea",
     verified: true,
-    description: "Specializing in Hyundai and Genesis luxury vehicles for African export. Over 15 years of experience shipping to Nigeria, Ghana, Kenya, and Tanzania.",
+    description:
+      "Specializing in Hyundai and Genesis luxury vehicles for African export. Over 15 years of experience shipping to Nigeria, Ghana, Kenya, and Tanzania.",
     specialties: ["Hyundai", "Genesis", "Luxury Sedans"],
   },
   {
@@ -23,7 +24,8 @@ export const MOCK_DEALERS: Dealer[] = [
     totalReviews: 156,
     location: "Busan, South Korea",
     verified: true,
-    description: "Leading supplier of buses, vans, and commercial vehicles to Africa. Full documentation and port delivery services included.",
+    description:
+      "Leading supplier of buses, vans, and commercial vehicles to Africa. Full documentation and port delivery services included.",
     specialties: ["Buses", "Vans", "Commercial"],
   },
   {
@@ -33,7 +35,8 @@ export const MOCK_DEALERS: Dealer[] = [
     totalReviews: 127,
     location: "Incheon, South Korea",
     verified: true,
-    description: "Kia specialist with comprehensive export documentation services. Ships to Ghana, Ivory Coast, Senegal, and Cameroon.",
+    description:
+      "Kia specialist with comprehensive export documentation services. Ships to Ghana, Ivory Coast, Senegal, and Cameroon.",
     specialties: ["Kia", "SUVs", "Family Cars"],
   },
   {
@@ -43,7 +46,8 @@ export const MOCK_DEALERS: Dealer[] = [
     totalReviews: 89,
     location: "Daegu, South Korea",
     verified: true,
-    description: "Experts in electric and hybrid vehicles for sustainable African transportation. Specializing in Kia EV6 and Hyundai Ioniq.",
+    description:
+      "Experts in electric and hybrid vehicles for sustainable African transportation. Specializing in Kia EV6 and Hyundai Ioniq.",
     specialties: ["Electric Vehicles", "Hybrids", "Kia EV6"],
   },
   {
@@ -53,7 +57,8 @@ export const MOCK_DEALERS: Dealer[] = [
     totalReviews: 94,
     location: "Suwon, South Korea",
     verified: true,
-    description: "Wide selection of SUVs and family vehicles ready for export. Specializing in Hyundai Tucson and Kia Sportage.",
+    description:
+      "Wide selection of SUVs and family vehicles ready for export. Specializing in Hyundai Tucson and Kia Sportage.",
     specialties: ["Hyundai Tucson", "Kia Sportage", "SUVs"],
   },
   {
@@ -63,7 +68,8 @@ export const MOCK_DEALERS: Dealer[] = [
     totalReviews: 178,
     location: "Seoul, South Korea",
     verified: true,
-    description: "Premium Korean vehicles with luxury export service. Genesis specialists with white-glove delivery to Nigeria, South Africa, and Kenya.",
+    description:
+      "Premium Korean vehicles with luxury export service. Genesis specialists with white-glove delivery to Nigeria, South Africa, and Kenya.",
     specialties: ["Genesis", "Luxury", "Premium Export"],
   },
   {
@@ -73,18 +79,12 @@ export const MOCK_DEALERS: Dealer[] = [
     totalReviews: 12,
     location: "Seoul, South Korea",
     verified: true,
-    description: "Premium Korean vehicle exports to Africa. Quality used cars with full documentation.",
+    description:
+      "Premium Korean vehicle exports to Africa. Quality used cars with full documentation.",
     specialties: ["Korean Cars", "Export Ready", "Documentation"],
   },
-]
+];
 
 export function getDealerById(id: string): Dealer | undefined {
-  return MOCK_DEALERS.find((dealer) => dealer.id === id)
+  return MOCK_DEALERS.find((dealer) => dealer.id === id);
 }
-
-
-
-
-
-
-

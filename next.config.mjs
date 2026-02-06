@@ -8,6 +8,15 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  output: 'standalone',
+  // Performance optimizations
+  reactStrictMode: true,
+  
+  // Reduce bundle size
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  
   images: {
     unoptimized: false, // Enable image optimization
     remotePatterns: [
@@ -42,6 +51,8 @@ const nextConfig = {
   },
   experimental: {
     allowedDevOrigins: ["http://localhost:3000", "http://localhost:3001"],
+    // Optimize chunking for faster dev server
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
   },
 }
 
