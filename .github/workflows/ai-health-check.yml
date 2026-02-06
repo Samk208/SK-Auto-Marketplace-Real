@@ -1,0 +1,41 @@
+name: Nightly AI System Health Check
+
+on:
+  schedule:
+    # Runs at 03:00 UTC every day
+    - cron: '0 3 * * *'
+  workflow_dispatch: # Allow manual trigger for debugging
+
+jobs:
+  ai-brain-check:
+    name: 🧠 Validating AI Agents & Logic
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 🔍 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: 📦 Setup PNPM
+        uses: pnpm/action-setup@v3
+        with:
+          version: "latest"
+
+      - name: 📥 Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🤖 Run Agent Orchestration Test Suite
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }} # e.g. https://your-production-url.com, or localhost if running a service
+          # Add OpenAI/Anthropic keys here if the script uses them directly, 
+          # otherwise they might be needed by the API if the script calls endpoints.
+        run: |
+          # We need to run the script using tsx
+          npx tsx scripts/test-agent-orchestration.ts
