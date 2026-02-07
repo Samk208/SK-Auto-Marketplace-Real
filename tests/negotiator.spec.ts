@@ -11,8 +11,8 @@ test.describe("Negotiator AI Agent (Chat Widget)", () => {
     await toggleButton.click();
 
     // 2. Check for Chat Interface
-    await expect(page.getByText("Sales Assistant")).toBeVisible();
-    await expect(page.getByText("Online Now")).toBeVisible();
+    await expect(page.getByText("Sales Assistant").first()).toBeVisible();
+    await expect(page.getByText("Online Now").first()).toBeVisible();
 
     // 3. Send a message
     const input = page.getByPlaceholder("Type a message...");
