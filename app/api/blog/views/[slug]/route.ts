@@ -3,9 +3,9 @@ import { NextResponse } from "next/server";
 
 export async function POST(
   req: Request,
-  { params }: { params: { slug: string } },
+  { params }: { params: Promise<{ slug: string }> },
 ) {
-  const { slug } = params;
+  const { slug } = await params;
 
   const { error } = await supabaseServer.rpc("increment_blog_view", {
     view_slug: slug,
@@ -23,9 +23,9 @@ export async function POST(
 
 export async function GET(
   req: Request,
-  { params }: { params: { slug: string } },
+  { params }: { params: Promise<{ slug: string }> },
 ) {
-  const { slug } = params;
+  const { slug } = await params;
   const { data, error } = await supabaseServer
     .from("blog_views")
     .select("count")

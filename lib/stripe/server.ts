@@ -1,60 +1,69 @@
 /**
  * Stripe Server-Side Configuration
- * 
+ *
  * This module initializes the Stripe SDK for server-side operations.
  * Used in API routes, server components, and server actions.
- * 
+ *
+ * Uses lazy initialization to avoid build-time errors when the
+ * secret key is not available (e.g. in CI environments).
+ *
  * @requires STRIPE_SECRET_KEY environment variable
  */
 
-import Stripe from 'stripe';
+import Stripe from "stripe";
 
-// Validate that the Stripe secret key is configured
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error(
-    'Missing required environment variable: STRIPE_SECRET_KEY\n' +
-    'Please add it to your .env.local file.\n' +
-    'For testing, use a key from: https://dashboard.stripe.com/test/apikeys'
-  );
-}
+let _stripe: Stripe | null = null;
 
 /**
- * Stripe SDK instance configured with your secret key
- * 
- * @see https://stripe.com/docs/api
+ * Get the Stripe SDK instance (lazy-initialized)
  */
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  // Use the latest API version for all requests
-  apiVersion: '2025-11-17.clover',
-  
-  // Enable TypeScript type definitions
-  typescript: true,
-  
-  // Add app metadata for better tracking in Stripe Dashboard
-  appInfo: {
-    name: 'SK AutoSphere',
-    version: '1.0.0',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://skautosphere.com',
+export function getStripe(): Stripe {
+  if (!_stripe) {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error(
+        "Missing required environment variable: STRIPE_SECRET_KEY\n" +
+          "Please add it to your .env.local file.\n" +
+          "For testing, use a key from: https://dashboard.stripe.com/test/apikeys",
+      );
+    }
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: "2025-11-17.clover",
+      typescript: true,
+      appInfo: {
+        name: "SK AutoSphere",
+        version: "1.0.0",
+        url: process.env.NEXT_PUBLIC_SITE_URL || "https://skautosphere.com",
+      },
+    });
+  }
+  return _stripe;
+}
+
+// Keep backward-compatible export that lazily resolves
+// This ensures existing `stripe.xxx` calls still work at runtime
+export const stripe = new Proxy({} as Stripe, {
+  get(_target, prop) {
+    return (getStripe() as unknown as Record<string | symbol, unknown>)[prop];
   },
 });
 
 /**
  * Format amount for Stripe (convert to smallest currency unit)
- * 
+ *
  * Stripe expects amounts in the smallest currency unit (cents for USD).
  * This function handles the conversion and validates the input.
- * 
+ *
  * @param amount - The amount in standard units (e.g., 25.50 for $25.50)
  * @param currency - ISO currency code (e.g., 'usd', 'eur', 'jpy')
  * @returns Amount in smallest currency unit (e.g., 2550 cents for $25.50)
- * 
+ *
  * @example
  * formatAmountForStripe(25.50, 'usd') // Returns 2550
  * formatAmountForStripe(1000, 'jpy')  // Returns 1000 (JPY has no decimal)
  */
 export function formatAmountForStripe(
   amount: number,
-  currency: string
+  currency: string,
 ): number {
   // Validate amount is a positive number
   if (!Number.isFinite(amount) || amount < 0) {
@@ -64,9 +73,22 @@ export function formatAmountForStripe(
   // Zero-decimal currencies (no cents/subunits)
   // See: https://stripe.com/docs/currencies#zero-decimal
   const zeroDecimalCurrencies = [
-    'bif', 'clp', 'djf', 'gnf', 'jpy', 'kmf', 'krw',
-    'mga', 'pyg', 'rwf', 'ugx', 'vnd', 'vuv', 'xaf',
-    'xof', 'xpf'
+    "bif",
+    "clp",
+    "djf",
+    "gnf",
+    "jpy",
+    "kmf",
+    "krw",
+    "mga",
+    "pyg",
+    "rwf",
+    "ugx",
+    "vnd",
+    "vuv",
+    "xaf",
+    "xof",
+    "xpf",
   ];
 
   const normalizedCurrency = currency.toLowerCase();
@@ -82,21 +104,21 @@ export function formatAmountForStripe(
 
 /**
  * Format amount for display (convert from Stripe's smallest unit)
- * 
+ *
  * Converts Stripe's amount (in smallest unit) back to a human-readable
  * format with proper currency symbol and formatting.
- * 
+ *
  * @param amount - Amount in smallest currency unit (from Stripe)
  * @param currency - ISO currency code
  * @returns Formatted string with currency symbol (e.g., "$25.50")
- * 
+ *
  * @example
  * formatAmountForDisplay(2550, 'usd') // Returns "$25.50"
  * formatAmountForDisplay(1000, 'jpy') // Returns "¥1,000"
  */
 export function formatAmountForDisplay(
   amount: number,
-  currency: string
+  currency: string,
 ): string {
   // Validate amount
   if (!Number.isFinite(amount)) {
@@ -105,29 +127,44 @@ export function formatAmountForDisplay(
 
   // Zero-decimal currencies
   const zeroDecimalCurrencies = [
-    'bif', 'clp', 'djf', 'gnf', 'jpy', 'kmf', 'krw',
-    'mga', 'pyg', 'rwf', 'ugx', 'vnd', 'vuv', 'xaf',
-    'xof', 'xpf'
+    "bif",
+    "clp",
+    "djf",
+    "gnf",
+    "jpy",
+    "kmf",
+    "krw",
+    "mga",
+    "pyg",
+    "rwf",
+    "ugx",
+    "vnd",
+    "vuv",
+    "xaf",
+    "xof",
+    "xpf",
   ];
 
   const normalizedCurrency = currency.toLowerCase();
-  
+
   // Calculate display amount based on currency type
   const displayAmount = zeroDecimalCurrencies.includes(normalizedCurrency)
     ? amount
     : amount / 100;
 
   // Use Intl.NumberFormat for locale-aware formatting
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
     currency: currency.toUpperCase(),
-    minimumFractionDigits: zeroDecimalCurrencies.includes(normalizedCurrency) ? 0 : 2,
+    minimumFractionDigits: zeroDecimalCurrencies.includes(normalizedCurrency)
+      ? 0
+      : 2,
   }).format(displayAmount);
 }
 
 /**
  * Create a Payment Intent for a vehicle listing
- * 
+ *
  * @param params - Payment intent parameters
  * @returns Stripe PaymentIntent object
  */
@@ -141,7 +178,7 @@ export async function createPaymentIntent(params: {
   const { amount, currency, listingId, buyerEmail, metadata = {} } = params;
 
   try {
-    const paymentIntent = await stripe.paymentIntents.create({
+    const paymentIntent = await getStripe().paymentIntents.create({
       amount: formatAmountForStripe(amount, currency),
       currency: currency.toLowerCase(),
       automatic_payment_methods: {
@@ -165,15 +202,15 @@ export async function createPaymentIntent(params: {
 
 /**
  * Retrieve a Payment Intent by ID
- * 
+ *
  * @param paymentIntentId - Stripe Payment Intent ID
  * @returns Stripe PaymentIntent object
  */
 export async function retrievePaymentIntent(
-  paymentIntentId: string
+  paymentIntentId: string,
 ): Promise<Stripe.PaymentIntent> {
   try {
-    return await stripe.paymentIntents.retrieve(paymentIntentId);
+    return await getStripe().paymentIntents.retrieve(paymentIntentId);
   } catch (error) {
     if (error instanceof Stripe.errors.StripeError) {
       throw new Error(`Stripe error: ${error.message}`);
@@ -184,30 +221,32 @@ export async function retrievePaymentIntent(
 
 /**
  * Verify Stripe webhook signature
- * 
+ *
  * @param payload - Raw request body
  * @param signature - Stripe signature header
  * @returns Verified Stripe event
  */
 export function constructWebhookEvent(
   payload: string | Buffer,
-  signature: string
+  signature: string,
 ): Stripe.Event {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   if (!webhookSecret) {
-    throw new Error('Missing STRIPE_WEBHOOK_SECRET environment variable');
+    throw new Error("Missing STRIPE_WEBHOOK_SECRET environment variable");
   }
 
   try {
-    return stripe.webhooks.constructEvent(
+    return getStripe().webhooks.constructEvent(
       payload,
       signature,
-      webhookSecret
+      webhookSecret,
     );
   } catch (error) {
     if (error instanceof Error) {
-      throw new Error(`Webhook signature verification failed: ${error.message}`);
+      throw new Error(
+        `Webhook signature verification failed: ${error.message}`,
+      );
     }
     throw error;
   }

@@ -1,17 +1,17 @@
 /**
  * Email sending helper functions
- * 
+ *
  * This module provides high-level functions to send transactional emails
  * using Resend and React Email templates
  */
 
-import { FROM_EMAIL, REPLY_TO_EMAIL, resend } from './client';
-import { DealerRefundNotificationEmail } from './templates/dealer-refund-notification';
-import { DealerSaleNotificationEmail } from './templates/dealer-sale-notification';
-import { ListingApprovedEmail } from './templates/listing-approved';
-import { ListingRejectedEmail } from './templates/listing-rejected';
-import { PaymentSuccessEmail } from './templates/payment-success';
-import { RefundConfirmationEmail } from './templates/refund-confirmation';
+import { FROM_EMAIL, getResend, REPLY_TO_EMAIL } from "./client";
+import { DealerRefundNotificationEmail } from "./templates/dealer-refund-notification";
+import { DealerSaleNotificationEmail } from "./templates/dealer-sale-notification";
+import { ListingApprovedEmail } from "./templates/listing-approved";
+import { ListingRejectedEmail } from "./templates/listing-rejected";
+import { PaymentSuccessEmail } from "./templates/payment-success";
+import { RefundConfirmationEmail } from "./templates/refund-confirmation";
 
 interface Listing {
   id: string;
@@ -47,11 +47,13 @@ export async function sendPaymentSuccessEmail(params: {
 }) {
   try {
     if (!params.buyerEmail) {
-      console.error('Cannot send payment success email: buyer email not provided');
-      return { success: false, error: 'No email address' };
+      console.error(
+        "Cannot send payment success email: buyer email not provided",
+      );
+      return { success: false, error: "No email address" };
     }
 
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: FROM_EMAIL,
       to: params.buyerEmail,
       replyTo: REPLY_TO_EMAIL,
@@ -71,14 +73,14 @@ export async function sendPaymentSuccessEmail(params: {
     });
 
     if (error) {
-      console.error('Failed to send payment success email:', error);
+      console.error("Failed to send payment success email:", error);
       return { success: false, error };
     }
 
-    console.log('Payment success email sent:', data?.id);
+    console.log("Payment success email sent:", data?.id);
     return { success: true, data };
   } catch (error) {
-    console.error('Error sending payment success email:', error);
+    console.error("Error sending payment success email:", error);
     return { success: false, error };
   }
 }
@@ -102,11 +104,13 @@ export async function sendDealerSaleNotificationEmail(params: {
 }) {
   try {
     if (!params.dealerEmail) {
-      console.error('Cannot send dealer sale notification: dealer email not provided');
-      return { success: false, error: 'No email address' };
+      console.error(
+        "Cannot send dealer sale notification: dealer email not provided",
+      );
+      return { success: false, error: "No email address" };
     }
 
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: FROM_EMAIL,
       to: params.dealerEmail,
       replyTo: REPLY_TO_EMAIL,
@@ -127,14 +131,14 @@ export async function sendDealerSaleNotificationEmail(params: {
     });
 
     if (error) {
-      console.error('Failed to send dealer sale notification:', error);
+      console.error("Failed to send dealer sale notification:", error);
       return { success: false, error };
     }
 
-    console.log('Dealer sale notification sent:', data?.id);
+    console.log("Dealer sale notification sent:", data?.id);
     return { success: true, data };
   } catch (error) {
-    console.error('Error sending dealer sale notification:', error);
+    console.error("Error sending dealer sale notification:", error);
     return { success: false, error };
   }
 }
@@ -145,19 +149,19 @@ export async function sendDealerSaleNotificationEmail(params: {
 export async function sendListingApprovedEmail(
   listing: Listing,
   dealer: DealerWithEmail,
-  dealerEmail?: string
+  dealerEmail?: string,
 ) {
   try {
     const toEmail = dealerEmail || dealer.email;
 
     if (!toEmail) {
-      console.error('Cannot send approved email: dealer email not provided');
-      return { success: false, error: 'No email address' };
+      console.error("Cannot send approved email: dealer email not provided");
+      return { success: false, error: "No email address" };
     }
 
-    const listingUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://skautosphere.com'}/listings/${listing.id}`;
+    const listingUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://skautosphere.com"}/listings/${listing.id}`;
 
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: FROM_EMAIL,
       to: toEmail,
       replyTo: REPLY_TO_EMAIL,
@@ -172,14 +176,14 @@ export async function sendListingApprovedEmail(
     });
 
     if (error) {
-      console.error('Failed to send approval email:', error);
+      console.error("Failed to send approval email:", error);
       return { success: false, error };
     }
 
-    console.log('Approval email sent successfully:', data?.id);
+    console.log("Approval email sent successfully:", data?.id);
     return { success: true, data };
   } catch (error) {
-    console.error('Error sending approval email:', error);
+    console.error("Error sending approval email:", error);
     return { success: false, error };
   }
 }
@@ -191,17 +195,17 @@ export async function sendListingRejectedEmail(
   listing: Listing,
   dealer: DealerWithEmail,
   rejectionReason: string,
-  dealerEmail?: string
+  dealerEmail?: string,
 ) {
   try {
     const toEmail = dealerEmail || dealer.email;
 
     if (!toEmail) {
-      console.error('Cannot send rejection email: dealer email not provided');
-      return { success: false, error: 'No email address' };
+      console.error("Cannot send rejection email: dealer email not provided");
+      return { success: false, error: "No email address" };
     }
 
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: FROM_EMAIL,
       to: toEmail,
       replyTo: REPLY_TO_EMAIL,
@@ -211,19 +215,19 @@ export async function sendListingRejectedEmail(
         listingTitle: listing.title,
         listingId: listing.id,
         rejectionReason,
-        dashboardUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://skautosphere.com'}/dealer/listings`,
+        dashboardUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://skautosphere.com"}/dealer/listings`,
       }),
     });
 
     if (error) {
-      console.error('Failed to send rejection email:', error);
+      console.error("Failed to send rejection email:", error);
       return { success: false, error };
     }
 
-    console.log('Rejection email sent successfully:', data?.id);
+    console.log("Rejection email sent successfully:", data?.id);
     return { success: true, data };
   } catch (error) {
-    console.error('Error sending rejection email:', error);
+    console.error("Error sending rejection email:", error);
     return { success: false, error };
   }
 }
@@ -231,10 +235,10 @@ export async function sendListingRejectedEmail(
 /**
  * Helper to get dealer email from user_id
  * Uses service role client to access admin.getUserById()
- * 
+ *
  * SECURITY: Must use service role client - anon client cannot call admin methods
  */
-import { getSupabaseServerClient } from '@/lib/supabase-server';
+import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export async function getDealerEmail(userId: string): Promise<string | null> {
   try {
@@ -243,13 +247,13 @@ export async function getDealerEmail(userId: string): Promise<string | null> {
     const { data, error } = await supabase.auth.admin.getUserById(userId);
 
     if (error || !data?.user?.email) {
-      console.error('Failed to get dealer email:', error);
+      console.error("Failed to get dealer email:", error);
       return null;
     }
 
     return data.user.email;
   } catch (error) {
-    console.error('Error getting dealer email:', error);
+    console.error("Error getting dealer email:", error);
     return null;
   }
 }
@@ -265,15 +269,17 @@ export async function sendRefundConfirmationEmail(
   refundAmount: number,
   originalAmount: number,
   currency: string,
-  refundReason?: string
+  refundReason?: string,
 ) {
   try {
     if (!buyerEmail) {
-      console.error('Cannot send refund confirmation: buyer email not provided');
-      return { success: false, error: 'No email address' };
+      console.error(
+        "Cannot send refund confirmation: buyer email not provided",
+      );
+      return { success: false, error: "No email address" };
     }
 
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: FROM_EMAIL,
       to: buyerEmail,
       replyTo: REPLY_TO_EMAIL,
@@ -290,14 +296,14 @@ export async function sendRefundConfirmationEmail(
     });
 
     if (error) {
-      console.error('Failed to send refund confirmation email:', error);
+      console.error("Failed to send refund confirmation email:", error);
       return { success: false, error };
     }
 
-    console.log('Refund confirmation email sent successfully:', data?.id);
+    console.log("Refund confirmation email sent successfully:", data?.id);
     return { success: true, data };
   } catch (error) {
-    console.error('Error sending refund confirmation email:', error);
+    console.error("Error sending refund confirmation email:", error);
     return { success: false, error };
   }
 }
@@ -315,15 +321,17 @@ export async function sendDealerRefundNotificationEmail(
   originalAmount: number,
   currency: string,
   buyerEmail: string,
-  refundReason?: string
+  refundReason?: string,
 ) {
   try {
     if (!dealerEmail) {
-      console.error('Cannot send dealer refund notification: dealer email not provided');
-      return { success: false, error: 'No email address' };
+      console.error(
+        "Cannot send dealer refund notification: dealer email not provided",
+      );
+      return { success: false, error: "No email address" };
     }
 
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: FROM_EMAIL,
       to: dealerEmail,
       replyTo: REPLY_TO_EMAIL,
@@ -342,15 +350,14 @@ export async function sendDealerRefundNotificationEmail(
     });
 
     if (error) {
-      console.error('Failed to send dealer refund notification:', error);
+      console.error("Failed to send dealer refund notification:", error);
       return { success: false, error };
     }
 
-    console.log('Dealer refund notification sent successfully:', data?.id);
+    console.log("Dealer refund notification sent successfully:", data?.id);
     return { success: true, data };
   } catch (error) {
-    console.error('Error sending dealer refund notification:', error);
+    console.error("Error sending dealer refund notification:", error);
     return { success: false, error };
   }
 }
-
