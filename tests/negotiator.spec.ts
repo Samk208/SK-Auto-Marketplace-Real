@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test.describe("Negotiator AI Agent (Chat Widget)", () => {
   test("should open chat widget and send a message", async ({ page }) => {
     await page.goto("/");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     // 1. Check for floating button
     const toggleButton = page.getByLabel("Open Chat");
